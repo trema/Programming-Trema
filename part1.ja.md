@@ -108,55 +108,59 @@ OpenFlowスイッチは，起動するとOpenFlowコントローラへ接続し�
 
 それでは仮想スイッチを起動してみましょう。
 
-### 仮想OpenFlowスイッチを起動する
+### 仮想 OpenFlow スイッチを起動する
 
-仮想スイッチを起動するには，仮想ネットワークの構成を記述した設定ファイルをtrema runに渡します。たとえば，リスト2の設定ファイルでは仮想スイッチ（vswitch）を2台定義しています。
+仮想スイッチを起動するには，仮想ネットワークの構成を記述した設定ファイルを `trema run` に渡します。たとえば，リスト 2 の設定ファイルでは仮想スイッチ (`vswitch`) を 2 台定義しています。
 
-    vswitch { datapath_id 0xabc }
-    vswitch { datapath_id 0xdef }
+```ruby
+vswitch { datapath_id 0xabc }
+vswitch { datapath_id 0xdef }
+```
 
 リスト2　仮想ネットワークに仮想スイッチを2台追加
 
-それぞれに指定されているdatapath_id（0xabc，0xdef）はネットワークカードにおけるMACアドレスのような存在で，スイッチを一意に特定するIDとして使われます。OpenFlowの規格によると，64ビットの一意な整数値をOpenFlow スイッチ1 台ごとに割り振ることになっています。仮想スイッチでは好きな値を設定できるので，かぶらないように適当な値をセットしてください。
+それぞれに指定されている `datapath_id` (`0xabc`， `0xdef`) はネットワークカードにおける MAC アドレスのような存在で，スイッチを一意に特定する ID として使われます。OpenFlow の規格によると，64 ビットの一意な整数値を OpenFlow スイッチ 1 台ごとに割り振ることになっています。仮想スイッチでは好きな値を設定できるので，かぶらないように適当な値をセットしてください。
 
-    class SwitchMonitor < Controller
-      periodic_timer_event :show_switches, 10 ――③
-    
-      def start
-        @switches = []
-      end
-    
-      def switch_ready datapath_id ――①
-        @switches << datapath_id.to_hex
-        info "Switch #{ datapath_id.to_hex } is UP"
-      end
-    
-      def switch_disconnected datapath_id ――②
-        @switches -= [datapath_id.to_hex ]
-        info "Switch #{ datapath_id.to_hex } is DOWN"
-      end
-    
-      private ――③
-      def show_switches
-        info "All switches = " + @switches.sort.join( ", " )
-      end
-    end
+```ruby
+class SwitchMonitor < Controller
+  periodic_timer_event :show_switches, 10 # (3)
 
-リスト3　SwitchMonitorコントローラ
+  def start
+    @switches = []
+  end
 
-それでは，さきほど定義したスイッチを起動してコントローラから捕捉してみましょう。スイッチの起動イベントを捕捉するにはswitch_readyハンドラを書きます（リスト3-①）。
+  def switch_ready datapath_id # (1)
+    @switches << datapath_id.to_hex
+    info "Switch #{ datapath_id.to_hex } is UP"
+  end
 
-@switchesは現在起動しているスイッチのリストを管理するインスタンス変数で，新しくスイッチが起動するとスイッチのdatapath\_idが追加されます。また，putsメソッドでdatapath_idを表示します。
+  def switch_disconnected datapath_id # (2)
+    @switches -= [datapath_id.to_hex ]
+    info "Switch #{ datapath_id.to_hex } is DOWN"
+  end
+
+  private # (3)
+  def show_switches
+    info "All switches = " + @switches.sort.join( ", " )
+  end
+end
+```
+
+リスト3　SwitchMonitor コントローラ
+
+それでは，さきほど定義したスイッチを起動してコントローラから捕捉してみましょう。スイッチの起動イベントを捕捉するには `switch_ready` ハンドラを書きます (リスト 3-1)。
+
+`@switches` は現在起動しているスイッチのリストを管理するインスタンス変数で，新しくスイッチが起動するとスイッチの `datapath_id` が追加されます。また，`puts` メソッドで `datapath_id` を表示します。
 
 ### スイッチの切断を捕捉する
 
-同様に，スイッチが落ちて接続が切れたイベントを捕捉してみましょう。このためのハンドラはswitch_disconnectedです（リスト3-②）。
+同様に，スイッチが落ちて接続が切れたイベントを捕捉してみましょう。このためのハンドラは `switch_disconnected` です (リスト 3-2)。
 
-スイッチの切断を捕捉すると，切断したスイッチのdatapath_idをスイッチ一覧@switchesから除きます。また，datapath_idをputsメソッドで表示します。
+スイッチの切断を捕捉すると，切断したスイッチの `datapath_id` をスイッチ一覧 `@switches` から除きます。また，`datapath_id` を `puts` メソッドで表示します。
 
 ### スイッチの一覧を表示する
 
-最後に，スイッチの一覧を定期的に表示する部分を作ります。一定時間ごとに何らかの処理を行いたい場合には，タイマー機能を使います。リスト3-③ように，一定の間隔で呼びたいメソッドと間隔（秒数）をperiodic_timer_eventで指定すると，指定されたメソッドが呼ばれます。ここでは，スイッチの一覧を表示するメソッドshow_switchesを10秒ごとに呼び出します。
+最後に，スイッチの一覧を定期的に表示する部分を作ります。一定時間ごとに何らかの処理を行いたい場合には，タイマー機能を使います。リスト 3-3 のように，一定の間隔で呼びたいメソッドと間隔 (秒数) を `periodic_timer_event` で指定すると，指定されたメソッドが呼ばれます。ここでは，スイッチの一覧を表示するメソッド `show_switches` を 10 秒ごとに呼び出します。
 
 ### 実行
 
@@ -221,7 +225,7 @@ OpenFlow の世界でも同じ用法が踏襲されています。OpenFlow の�
 
 すべてのコントローラのテンプレートとなる Hello, Trema! コントローラを書きました。また，これを改造してスイッチの動作状況を監視するスイッチモニタを作りました。学んだことは次の3つです。
 
-* OpenFlow ネットワークはパケットを処理するスイッチ （datapath） と，スイッチを制御するソフトウェア （コントローラ） から構成される。Trema は，このコントローラを書くためのプログラミングフレームワークである
+* OpenFlow ネットワークはパケットを処理するスイッチ (datapath) と，スイッチを制御するソフトウェア （コントローラ） から構成される。Trema は，このコントローラを書くためのプログラミングフレームワークである
 * Trema は仮想ネットワーク構築機能を持っており，OpenFlow スイッチを持っていなくてもコントローラの開発やテストが可能。たとえば，仮想ネットワークに仮想スイッチを追加し，任意の datapath ID を設定できる
 * コントローラは Ruby の Controller クラスを継承し，OpenFlow の各種イベントに対応するハンドラを定義することでスイッチをコントロールできる。たとえば，`switch_ready` と `switch_disconnected` ハンドラでスイッチの起動と切断イベントに対応するアクションを書ける
 
