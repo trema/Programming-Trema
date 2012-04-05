@@ -160,7 +160,7 @@ OpenFlowスイッチは，起動するとOpenFlowコントローラへ接続し�
 
 ### 実行
 
-それでは早速実行してみましょう。仮想スイッチを3台起動する場合，リスト4の内容のファイルをswitch-monitor.confとして保存し，設定ファイルをtrema runの-cオプションに渡してください。
+それでは早速実行してみましょう。仮想スイッチを 3 台起動する場合，リスト 4 の内容のファイルを `switch-monitor.conf` として保存し，設定ファイルを `trema run` の `-c` オプションに渡してください。
 
 ```ruby
 vswitch { datapath_id 0x1 }
@@ -181,13 +181,13 @@ vswitch { datapath_id 0x3 }
     All switches = 0x1, 0x2, 0x3
     ……
 
-switch-monitorコントローラが起動すると設定ファイルで定義した仮想スイッチ3台が起動し，switch-monitorコントローラのswitch_readyハンドラによって捕捉され，このメッセージが出力されました。
+`switch-monitor` コントローラが起動すると設定ファイルで定義した仮想スイッチ 3 台が起動し，`switch-monitor` コントローラの `switch_ready` ハンドラによって捕捉され，このメッセージが出力されました。
 
-それでは，スイッチの切断がうまく検出されるか確かめてみましょう。スイッチを停止するコマンドはtrema killです。別ターミナルを開き，次のコマンドでスイッチ0x3を落としてみてください。
+それでは，スイッチの切断がうまく検出されるか確かめてみましょう。スイッチを停止するコマンドは `trema kill` です。別ターミナルを開き，次のコマンドでスイッチ `0x3` を落としてみてください。
 
     % ./trema kill 0x3
 
-すると，trema run を動かしたターミナルに次の出力が表示されているはずです。
+すると，`trema run` を動かしたターミナルに次の出力が表示されているはずです。
 
     % ./trema run ./switch-monitor.rb -c ./switch-monitor.conf
     Switch 0x3 is UP
@@ -199,7 +199,7 @@ switch-monitorコントローラが起動すると設定ファイルで定義し
     ……
     Switch 0x3 is DOWN
 
-うまくいきました！ おわかりのとおり，このメッセージはswitch_disconnectedハンドラによって表示されたものです。
+うまくいきました！ おわかりのとおり，このメッセージは `switch_disconnected` ハンドラによって表示されたものです。
 
 
 ---
