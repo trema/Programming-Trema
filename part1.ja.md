@@ -64,12 +64,13 @@ Trema のセットアップには，「`make install`」のようなシステム
 
 `trema` ディレクトリの中に `hello_trema.rb` というファイルを作成し，エディタでリスト 1 のコードを入力してください。
 
-```
+```ruby
 class HelloController < Controller # (1)
   def start # (2)
     puts "Hello, Trema!"
   end
 end
+```
 
 リスト1　Hello Trema! コントローラ
 
