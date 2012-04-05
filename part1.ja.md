@@ -162,9 +162,11 @@ OpenFlowスイッチは，起動するとOpenFlowコントローラへ接続し�
 
 それでは早速実行してみましょう。仮想スイッチを3台起動する場合，リスト4の内容のファイルをswitch-monitor.confとして保存し，設定ファイルをtrema runの-cオプションに渡してください。
 
-    vswitch { datapath_id 0x1 }
-    vswitch { datapath_id 0x2 }
-    vswitch { datapath_id 0x3 }
+```ruby
+vswitch { datapath_id 0x1 }
+vswitch { datapath_id 0x2 }
+vswitch { datapath_id 0x3 }
+```
 
 リスト4　仮想スイッチを3台定義
 
