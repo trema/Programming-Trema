@@ -212,7 +212,7 @@ vswitch { datapath_id 0x3 }
 
 ---
 
-## 友太郎の質問 datapath ってなに?
+### 友太郎の質問 datapath ってなに?
 
 **Q.** 「こんにちは! 僕は最近 OpenFlow に興味を持ったプログラマ，友太郎です。スイッチに付いている ID を datapath ID って呼ぶのはわかったけど，いったい datapath ってなに? スイッチのこと?」
 
@@ -238,7 +238,7 @@ OpenFlow の世界でも同じ用法が踏襲されています。OpenFlow の�
 
 ---
 
-## 友太郎の質問: `switch_ready` ってなに ?
+### 友太郎の質問: `switch_ready` ってなに ?
 
 **Q.** 「OpenFlow の仕様を読んでみたけど，どこにも `switch_ready` って出てこなかったよ? OpenFlow にそんなイベントが定義されてるの?」
 
