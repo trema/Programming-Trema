@@ -30,9 +30,9 @@ Tremaは，OpenFlowコントローラを開発するためのRubyおよびC用�
 
 Tremaの情報は次のサイトから入手できます。
 
-* Tremaホームページ
-* GitHubのページ
-* メーリングリスト
+* [Tremaホームページ](http://trema.github.com/trema/)
+* [GitHubのページ](https://github.com/trema/)
+* [メーリングリスト](https://groups.google.com/group/trema-dev)
 * Twitterアカウント：@trema_news
 
 Tremaを使うと，ノートPC1台でOpenFlowコントローラの開発とテストができます。本連載では，実際にTremaを使っていろいろと実験しながらOpenFlowコントローラを作っていきます。それでは早速Tremaをセットアップして，簡単なプログラムを書いてみましょう。
