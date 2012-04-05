@@ -230,7 +230,9 @@ OpenFlowの世界でも同じ用法が踏襲されています。OpenFlowのデ�
 
 **A.** `switch_ready` は Trema 独自のイベントで，スイッチが Trema に接続し指示が出せるようになった段階でコントローラに送られます。実は，`switch_ready` の裏では図 A の一連の処理が行われており，Trema が OpenFlow プロトコルの詳細をうまくカーペットの裏に隠してくれているのです。
 
-図A　switch_readyイベントが起こるまで
+![switch_ready イベントが起こるまで](https://github.com/trema/Programming-Trema/raw/master/images/1_00a.png)
+
+図A　switch_ready イベントが起こるまで
 
 最初に，スイッチとコントローラがしゃべる OpenFlow プロトコルが合っているか確認します。OpenFlow の `HELLO` メッセージを使ってお互いのプロトコルバージョンを確認し，うまく会話できそうか確認します。
 
