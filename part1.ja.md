@@ -79,3 +79,123 @@ tremaディレクトリの中にhello_trema.rbというファイルを作成し�
     Hello, Trema!  ←Ctrl+cで終了
 
 いかがでしょうか？ Tremaを使うと，とても簡単にコントローラを書いて実行できることがわかると思います。えっ？ これがいったいスイッチの何を制御したかって？ 確かにこのコントローラはほとんど何もしてくれませんが，Tremaでコントローラを書くのに必要な知識がひととおり含まれています。スイッチをつなげるのはちょっと辛抱して，まずはソースコードを見ていきましょう。
+
+### コントローラクラスを定義する
+
+Rubyで書く場合，すべてのコントローラはControllerクラスを継承して定義します（リスト1-①）。
+
+Controllerクラスを継承することで，コントローラに必要な基本機能がHelloControllerクラスにこっそりと追加されます。
+
+### ハンドラを定義する
+
+Tremaはイベントドリブンなプログラミングモデルを採用しています。つまり，OpenFlowメッセージの到着など各種イベントに対応するハンドラを定義しておくと，イベントの発生時に対応するハンドラが呼び出されます。たとえばstartメソッドを定義しておくと，コントローラの起動時にこれが自動的に呼ばれます（リスト1-②）。
+
+さて，これでTremaの基本はおしまいです。次は，いよいよ実用的なOpenFlowコントローラを書いて実際にスイッチをつないでみます。今回のお題はスイッチのモニタリングツールです。「今，ネットワーク中にどのスイッチが動いているか」をリアルタイムに表示しますので，何らかの障害で落ちてしまったスイッチを発見するのに便利です。
+
+## スイッチモニタリングツールの概要
+
+スイッチモニタリングツールは図2のように動作します。
+
+図2　スイッチモニタリングツールの動作
+
+OpenFlowスイッチは，起動するとOpenFlowコントローラへ接続しに行きます。Tremaでは，スイッチとの接続が確立すると，コントローラのswitch_readyハンドラが呼ばれます。コントローラはスイッチ一覧リストを更新し，新しく起動したスイッチをリストに追加します。逆にスイッチが何らかの原因で接続を切った場合，コントローラのswitch\_disconnectedハンドラが呼ばれます。コントローラはリストを更新し，いなくなったスイッチをリストから削除します。
+
+### 仮想ネットワーク
+
+それでは早速，スイッチの起動を検知するコードを書いてみましょう。なんと，Tremaを使えばOpenFlowスイッチを持っていなくてもこうしたコードを実行してテストできます。いったいどういうことでしょうか？
+
+その答えは，Tremaの強力な機能の1つ，仮想ネットワーク構築機能にあります。これは仮想OpenFlowスイッチや仮想ホストを接続した仮想ネットワークを作る機能です。この仮想ネットワークとコントローラを接続することによって，物理的なOpenFlowスイッチやホストを準備しなくとも，開発マシン1 台でOpenFlow コントローラと動作環境を一度に用意して開発できます。もちろん，開発したコントローラは実際の物理的なOpenFlowスイッチやホストで構成されたネットワークでもそのまま動作します！
+
+それでは仮想スイッチを起動してみましょう。
+
+### 仮想OpenFlowスイッチを起動する
+
+仮想スイッチを起動するには，仮想ネットワークの構成を記述した設定ファイルをtrema runに渡します。たとえば，リスト2の設定ファイルでは仮想スイッチ（vswitch）を2台定義しています。
+
+    vswitch { datapath_id 0xabc }
+    vswitch { datapath_id 0xdef }
+
+リスト2　仮想ネットワークに仮想スイッチを2台追加
+
+それぞれに指定されているdatapath_id（0xabc，0xdef）はネットワークカードにおけるMACアドレスのような存在で，スイッチを一意に特定するIDとして使われます。OpenFlowの規格によると，64ビットの一意な整数値をOpenFlow スイッチ1 台ごとに割り振ることになっています。仮想スイッチでは好きな値を設定できるので，かぶらないように適当な値をセットしてください。
+
+    class SwitchMonitor < Controller
+      periodic_timer_event :show_switches, 10 ――③
+    
+      def start
+        @switches = []
+      end
+    
+      def switch_ready datapath_id ――①
+        @switches << datapath_id.to_hex
+        info "Switch #{ datapath_id.to_hex } is UP"
+      end
+    
+      def switch_disconnected datapath_id ――②
+        @switches -= [datapath_id.to_hex ]
+        info "Switch #{ datapath_id.to_hex } is DOWN"
+      end
+    
+      private ――③
+      def show_switches
+        info "All switches = " + @switches.sort.join( ", " )
+      end
+    end
+
+リスト3　SwitchMonitorコントローラ
+
+それでは，さきほど定義したスイッチを起動してコントローラから捕捉してみましょう。スイッチの起動イベントを捕捉するにはswitch_readyハンドラを書きます（リスト3-①）。
+
+@switchesは現在起動しているスイッチのリストを管理するインスタンス変数で，新しくスイッチが起動するとスイッチのdatapath\_idが追加されます。また，putsメソッドでdatapath_idを表示します。
+
+### スイッチの切断を捕捉する
+
+同様に，スイッチが落ちて接続が切れたイベントを捕捉してみましょう。このためのハンドラはswitch_disconnectedです（リスト3-②）。
+
+スイッチの切断を捕捉すると，切断したスイッチのdatapath_idをスイッチ一覧@switchesから除きます。また，datapath_idをputsメソッドで表示します。
+
+### スイッチの一覧を表示する
+
+最後に，スイッチの一覧を定期的に表示する部分を作ります。一定時間ごとに何らかの処理を行いたい場合には，タイマー機能を使います。リスト3-③ように，一定の間隔で呼びたいメソッドと間隔（秒数）をperiodic_timer_eventで指定すると，指定されたメソッドが呼ばれます。ここでは，スイッチの一覧を表示するメソッドshow_switchesを10秒ごとに呼び出します。
+
+### 実行
+
+それでは早速実行してみましょう。仮想スイッチを3台起動する場合，リスト4の内容のファイルをswitch-monitor.confとして保存し，設定ファイルをtrema runの-cオプションに渡してください。
+
+    vswitch { datapath_id 0x1 }
+    vswitch { datapath_id 0x2 }
+    vswitch { datapath_id 0x3 }
+
+リスト4　仮想スイッチを3台定義
+
+実行結果は次のようになります。
+
+    % ./trema run ./switch-monitor.rb -c ./switch-monitor.conf
+    Switch 0x3 is UP
+    Switch 0x2 is UP
+    Switch 0x1 is UP
+    All switches = 0x1, 0x2, 0x3
+    All switches = 0x1, 0x2, 0x3
+    All switches = 0x1, 0x2, 0x3
+    ……
+
+switch-monitorコントローラが起動すると設定ファイルで定義した仮想スイッチ3台が起動し，switch-monitorコントローラのswitch_readyハンドラによって捕捉され，このメッセージが出力されました。
+
+それでは，スイッチの切断がうまく検出されるか確かめてみましょう。スイッチを停止するコマンドはtrema killです。別ターミナルを開き，次のコマンドでスイッチ0x3を落としてみてください。
+
+    % ./trema kill 0x3
+
+すると，trema run を動かしたターミナルに次の出力が表示されているはずです。
+
+    % ./trema run ./switch-monitor.rb -c ./switch-monitor.conf
+    Switch 0x3 is UP
+    Switch 0x2 is UP
+    Switch 0x1 is UP
+    All switches = 0x1, 0x2, 0x3
+    All switches = 0x1, 0x2, 0x3
+    All switches = 0x1, 0x2, 0x3
+    ……
+
+Switch 0x3 is DOWN
+うまくいきました！ おわかりのとおり，このメッセージはswitch_disconnectedハンドラによって表示されたものです。
+
