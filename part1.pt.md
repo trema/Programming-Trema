@@ -61,12 +61,47 @@ Vamos então, escrever o Controler do Hello, Trema! básico em Ruby. Abordaremos
 
 # Hello, Trema!
 
+Crie dentro do diretório `trema` um arquivo com o nome `hello_trema.rb`, e insira o código da lista 1 abaixo:
+
+```ruby
+class HelloController < Controller # (1)
+	def start # (2)
+		puts "Hello, Trema!"
+	end
+end
+```
+
+lista 1 Controller Hello Trema!
+
+Vamos rodar! O Controller criado pode ser executado através do comando `trema run`. Este Controller OpenFlow mais curto do mundo (?) vai mostrar na tela "Hello, Trema!".
+
+		% cd trema
+		% ./trema run ./hello_trema.rb
+		Hello, Trema! <- Encerrar com Ctrlc + c
+
+Gostou? Você viu que é muito fácil escrever e executar um Controller usando Trema. Hein? Você quer saber o que esse código tem com controle de switches? Realmente, esse Controller não faz quase nada, mas contém o conhecimento geral necessário para escrever um Controller no Trema. Aguente um pouco até conectar um switch, e vamos olhando os códigos-fonte.
 
 ### Definir a classe Controller
 
+Quando você programa em Ruby, todo Controller é herdado do `Controller`.
+
+Herdando da classe `Controller`, toda funcionalidade necessária de um Controller é acrescentada discretamente na classe `HelloController`.
+
 ### Definir o Handler
 
-## Overview do Switch Monitoring Tool
+Trema adota o modelo de programação orientado a eventos. Ou seja, definindo handler para cada tipo de evento para atender às mensagens OpenFlow recebidas, o handler é chamado assim que surgir um evento. Por exemplo, se definir um método `start`, ele será chamado no momento da inicialização do Controller (lista 1-2).
+
+Bem, o básico de Trema acaba aqui. Agora, vamos escrever um Controller OpenFlow de uso prático e conectar num switch. A tarefa da vez é fazer uma Ferramenta de Monitoramento de Switches. Ela exibe "Qual switch desta rede está rodando neste momento", e será útil para descobrir quais switches falharam por algum motivo.
+
+## Overview da Ferramenta de Monitoramento de Switches
+
+A Ferramneta de Monitoramento de Switches funciona como na figura 2:
+
+![Funcionamento da Ferramenta de Monitoramento de Switches](https://github.com/trema/Programming-Trema/raw/master/images/1_002.png)
+
+figura 2 Funcionamento da Ferramenta de monitoramento de Switches
+
+Quando um switch OpenFlow inicializa, ele se conecta com o Controller OpenFlow. No Trema, quando a conexão é estabelecida, o handler switch_ready é chamado. O Controller atualiza a lista de switches, adicionando o switch que se inicializou. Por outro lado, se um switch se desconectar por algum motivo, o handler `switch_disconnected` do Controller é chamado. O Controller atualiza a lista, removendo o switch desconectado da lista.
 
 ### Rede Virtual
 
