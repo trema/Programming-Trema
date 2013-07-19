@@ -175,12 +175,12 @@ Vamos ver em detalhes o processamento do (1). Para obter detalhes do API, como o
 
 Na explicação abaixo, usaremos uma estrutura de rede constituída por 2 hosts + 1 switch. A sequência de ações consequentes do envio de um pacote do host1 para host2 fica como a figura 4.
 
-![Exemplo de estrutura de rede que roda o TrafficMonitor](https://github.com/trema/    Programming-Trema/raw/master/images/2_003.png)
+![Exemplo de estrutura de rede que roda o TrafficMonitor](https://github.com/trema/Programming-Trema/raw/master/images/2_003.png)
 
 figura 3 Exemplo de estrutura de rede que roda o TrafficMonitor
 
 
-![Sequência de ações consequentes do envio de um pacote do host1 para host2](https://github.c    om/trema/Programming-Trema/raw/master/images/2_004.png)
+![Sequência de ações consequentes do envio de um pacote do host1 para host2](https://github.com/trema/Programming-Trema/raw/master/images/2_004.png)
 
 figura 4 Sequência de ações consequentes do envio de um pacote do `host1` para `host2`
 
