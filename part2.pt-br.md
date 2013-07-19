@@ -6,7 +6,7 @@
 > "Alice no País das Maravilhas"
 >
 
-Tem muitas coisas dessa vez! Primeiro vamos usar um exemplo próximo do dia-a-dia para explicar o modelo de funcionamento do OpenFlow. Compreendendo isso, o conceito básico de OpenFlow estará perfeito. Em seguida, vamos fazer de fato um Controller que faz o "switch com totalizador de tráfego". Ele possui todos os processamentos importantes do OpenFlow, por isso só de adaptá-lo é possível criar Controllers de vários tipos. Por fim, vamos executar o Controller criado na rede virtual do Trema. Para nossa alegria, usando o Trema é possível realizar desde o desenvolvimento até o teste de execução, numa única máquina para desenvolvimento.
+Tem muitas coisas dessa vez! Primeiro vamos usar um exemplo próximo do dia-a-dia para explicar o modelo de funcionamento do OpenFlow. Compreendendo isso, o conceito básico de OpenFlow estará perfeito. Em seguida, vamos fazer de fato um Controller que faz o "switch com contabilizador de tráfego". Ele possui todos os processamentos importantes do OpenFlow, por isso só de adaptá-lo é possível criar Controllers de vários tipos. Por fim, vamos executar o Controller criado na rede virtual do Trema. Para nossa alegria, usando o Trema é possível realizar desde o desenvolvimento até o teste de execução, numa única máquina para desenvolvimento.
 
 Chega de prefácio, e vamos compreender o mecanismo que controla o switch no OpenFlow.
 
@@ -41,13 +41,13 @@ A grande diferença do suporte por telefone é que, no flow escrito na flow tabl
 Vamos parar de falar sobre o funcionamento por aqui, e vamos logo à prática. Se ficar confuso no meio da leitura, volte a ler a partir do início desta seção.
 
 
-# Visão geral do "Switch totalizador de tráfego"
+# Visão geral do "Switch contabilizador de tráfego"
 
 O switch otalizador de tráfego, à primeira vista, funciona como um switch comum da camada 2. Mas por trás dos panos, ele conta o tráfego transmitido por cada host, e periodicamente exibe a informação do total. Usando ele, é fácil de determinar qual host que está consumindo os recursos da rede.
 
 ## Planejamento e implementação
 
-Quais peças são necessárias para a "funcionalidade do switch da camada 2" e para a "funcionalidade do totalizador de tráfego"? Primeiro precisamos de uma classe Controller correspondendo a um superior que dá instruções ao switch. Vamos chamá-lo de `TrafficMonitor`. Precisamos ainda de uma classe `FDB` (obs. 1) para entregar o pacote á porta do switch destinatário e também da classe `Counter` para totalizar o tráfego. No mínimo precisamos destas 3 classes.
+Quais peças são necessárias para a "funcionalidade do switch da camada 2" e para a "funcionalidade do contabilizador de tráfego"? Primeiro precisamos de uma classe Controller correspondendo a um superior que dá instruções ao switch. Vamos chamá-lo de `TrafficMonitor`. Precisamos ainda de uma classe `FDB` (obs. 1) para entregar o pacote á porta do switch destinatário e também da classe `Counter` para totalizar o tráfego. No mínimo precisamos destas 3 classes.
 
 obs. 1) FDB é acrônimo para Forwarding DataBase, uma funcionalidade comum em switches. Os detalhes são explicados durante a implementação a seguir.
 
@@ -179,6 +179,7 @@ Na explicação abaixo, usaremos uma estrutura de rede constituída por 2 hosts 
 
 figura 3 Exemplo de estrutura de rede que roda o TrafficMonitor
 
+
 ![Sequência de ações consequentes do envio de um pacote do host1 para host2](https://github.c    om/trema/Programming-Trema/raw/master/images/2_004.png)
 
 figura 4 Sequência de ações consequentes do envio de um pacote do `host1` para `host2`
@@ -208,3 +209,61 @@ figura 5 Sequência de ações consequentes do envio de um pacote do host1 para 
 Pela última ação 7, os futuros pacotes de `host2` ao `host1` serão processados apenas pelo switch.
 
 
+# Vamos executar
+
+Agora, vamos executar (obs. 2). Salve a configuração de rede virtual da lista 4 como `traffic-monitor.conf` e execute como abaixo:
+
+		% ./trema run ./traffic-monitor.rb -c ./traffic-monitor.conf
+
+Lista 4 Configuração para conectar os hosts virtuais `host1` e `host2` ao switch virtual `0xabc`
+
+```ruby
+vswitch { # <- Definição do switch virtual 0xabc
+  datapath_id 0xabc
+}
+
+vhost ("host1") { # <- Definição do host virtual host1
+  ip "192.168.0.1"
+  mac "00:00:00:00:00:01"
+}
+
+vhost ("host2") { # <- Definição do host virtual host1
+  ip "192.168.0.2"
+  mac "00:00:00:00:00:02"
+}
+
+link "0xabc", "host1" # <- Conecta host1 e host2 ao switch 0xabc
+link "0xabc", "host2"
+```
+
+Ao executar, constitui-se a rede virtual representada na figura 3, e o Controller `TrafficMonitor` se inicializa.
+
+Então, vamos ver se realmente está gerando tráfego e contabilizando. Se usar o comando `send_packets` do Trema, é possível fazer os hosts virtuais enviarem e receberem pacotes entre si. Abra um novo terminal e insira os seguintes comandos:
+
+		% ./trema send_packets --source host1 --dest host2 --n_pkts 10 --pps 10 <- envia 10 pacotes do host1 ao host2
+
+		% ./trema send_packets --source host2 --dest host1 --n_pkts 10 --pps 10 <- envia 10 pacotes do host2 ao host1
+
+Se tiver uma saída como abaixo no terminal que executou `trema run`, é sucesso (obs. 3).
+
+		...
+		00:00:00:00:00:01	10 packets (640 bytes)
+		^foram enviados 10 pacotes do host1
+
+		00:00:00:00:00:01	10 packets (640 bytes)
+		^foram enviados 10 pacotes do host2
+		...
+
+obs. 2) Para quem não instalou o Trema ainda, instale seguindo a publicação anterior ou a documentação do Trema. A propósito, o Trema é frequentemente atualizado, por isso recomendo que você atualize, mesmo que já tenha instalado.
+
+obs. 3) Pode ser que mostre outras informações sobre o tráfego, mas são pacotes IPv6 enviados pelo kernel do Linux, e não tem relação com `host1` ou `host2`
+
+
+# Resumo
+
+Desta vez descrevi o Controller que implementa um "Switch com contabilizador de tráfego". Aprendemos as duas coisas a seguir:
+
+* Aprendemos o modelo de funcionamento do OpenFlow pelo exemplo de suporte por telefone. A transferência de pacotes é feito pelo flow table do switch, e pode ser modificado pela mensagem `flow_mod`. Além disso, a mensagem `packet_in` é enviada ao Controller quando recebe um pacote não cadastrado no flow table.
+* Aprendemos como se testa o funcionamento de um Controller usando uma rede virtual. Podemos fazer um teste simples ligando e conectando o switch virtual com os hosts virtuais, e fazendo os hosts enviarem e receberem pacotes entre si através do comando `send_packets`.
+
+Na próxima apresentaremos o desenvolvimento orientado a testes (TDD) usando Trema. O TDD tão costumeiro em desenvolvimento ágil usando Rails ou Sinatra também é suportado pelo Trema. Para implementar softwares com sequências de ações complicadas, como no caso do Controller OpenFlow, é válido aplicar o desenvolvimento incremental através do TDD.
