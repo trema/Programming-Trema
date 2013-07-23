@@ -13,7 +13,7 @@ Entre esses hacks para "facilitar a vida através do software", o de maior escal
 
 Dentre esses hacks, uma das tecnologias criadas para hackear a rede é o OpenFlow, que será abordado nesta série. O OpenFlow define um protocolo que altera o comportamento interno dos switches de rede (informações sobre especificação e padronização do OpenFlow pode ser obtido [aqui](http://www.openflow.org)). Através do software que controla os switches (conhecido como Controller no mundo do OpenFlow), ele busca um mundo onde seja possível controlar toda a rede através do software (figura 1).
 
-![Switch e Controller Openflow](https://github.com/trema/Programming-Trema/raw/master/images/1_001.png)
+![Switch e Controller Openflow](https://github.com/lucioseki/Programming-Trema/raw/master/images/1_001.pt-br.png)
 
 figura 1 Switch e Controller Openflow
 
@@ -99,7 +99,7 @@ Bem, o básico de Trema acaba aqui. Agora, vamos escrever um Controller OpenFlow
 
 A Ferramneta de Monitoramento de Switches funciona como na figura 2:
 
-![Funcionamento da Ferramenta de Monitoramento de Switches](https://github.com/trema/Programming-Trema/raw/master/images/1_002.png)
+![Funcionamento da Ferramenta de Monitoramento de Switches](https://github.com/lucioseki/Programming-Trema/raw/master/images/1_002.pt-br.png)
 
 figura 2 Funcionamento da Ferramenta de monitoramento de Switches
 
@@ -244,7 +244,7 @@ Na próxima vez vamos escrever um Controller mais realista, criando um switch de
 
 **A.** `switch_ready` é um evento próprio do Trema, e é enviado ao Controller na etapa em que o switch se conecta ao Trema, permitindo o envio de instruções. Na verdade, por trás do `switch_ready` é executado uma série de processos da figura A, e o Trema esconde bem por debaixo do tapete os detalhes do protocolo OpenFlow.
 
-![surgimento do evento switch_ready](https://github.com/trema/Programming-Trema/raw/master/images/1_00a.png)
+![surgimento do evento switch_ready](https://github.com/lucioseki/Programming-Trema/raw/master/images/1_00a.pt-br.png)
 
 figura A surgimento do evento switch_ready
 
